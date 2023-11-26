@@ -4,84 +4,136 @@ CREATE DATABASE ara;
 
 USE ara;
 
-CREATE TABLE SocialCategory (
-	name VARCHAR(20) NOT NULL UNIQUE,
-  	reduction DECIMAL(2, 2) NOT NULL,
-	PRIMARY KEY (name)
+CREATE TABLE CategorieSociale (
+	nomCS VARCHAR(20) NOT NULL UNIQUE,
+  	reductionCS DECIMAL(2, 2) NOT NULL,
+	PRIMARY KEY (nomCS)
 );
 
-CREATE TABLE Person (
-	id INT NOT NULL UNIQUE AUTO_INCREMENT,
-	firstname VARCHAR(30) NOT NULL,
-	lastname VARCHAR(30) NOT NULL,
-	email VARCHAR(40),
-	phone VARCHAR(15),
-	socialCategory VARCHAR(20),
-	lastPayment DATE,
-	lastMedicalCertificate DATE,
-	remaindedAt DATE,
-	canSupervise BOOLEAN NOT NULL DEFAULT FALSE,
-	PRIMARY KEY (id),
-	FOREIGN KEY (socialCategory) REFERENCES SocialCategory(name)
+CREATE TABLE Adresse (
+	idA INT NOT NULL UNIQUE AUTO_INCREMENT,
+	numeroA INT NOT NULL,
+	rueA VARCHAR(20) NOT NULL,
+	villeA VARCHAR(20) NOT NULL,
+	cpA INT NOT NULL,
+	PRIMARY KEY (idA)
+);
+
+CREATE TABLE Personne (
+	idPERS INT NOT NULL UNIQUE AUTO_INCREMENT,
+	nomPERS VARCHAR(30) NOT NULL,
+	prenomPERS VARCHAR(30) NOT NULL,
+	emailPERS VARCHAR(40),
+	PRIMARY KEY (idPERS)
+);
+
+CREATE TABLE Adhesion (
+	idAD INT NOT NULL UNIQUE AUTO_INCREMENT,
+	personneAD INT NOT NULL,
+	telephoneAD VARCHAR(15),
+	ddnAD INT,
+	categorieSocialeAD VARCHAR(20),
+	canSuperviseAD BOOLEAN NOT NULL DEFAULT FALSE,
+	adresseAD INT,
+	fonction VARCHAR(10),
+	PRIMARY KEY (idAD),
+	FOREIGN KEY (personneAD) REFERENCES Personne(idPERS),
+	FOREIGN KEY (categorieSocialeAD) REFERENCES CategorieSociale(nomCS),
+	FOREIGN KEY (adresseAD) REFERENCES Adresse(idA)
+);
+
+CREATE TABLE Paiement (
+	idP INT NOT NULL UNIQUE AUTO_INCREMENT,
+	dateRelanceP DATE,
+	recuP TEXT NOT NULL,
+	datePaiementP DATE NOT NULL,
+	dateEcheanceP DATE NOT NULL,
+	adhesionP INT NOT NULL,
+	PRIMARY KEY (idP),
+	FOREIGN KEY (adhesionP) REFERENCES Adhesion(idAD)
+);
+
+CREATE TABLE CertificatMedical (
+	idCM INT NOT NULL UNIQUE AUTO_INCREMENT,
+	medecinCM VARCHAR(30) NOT NULL,
+	lienCM VARCHAR(150) NOT NULL,
+	dateDebutCM DATE NOT NULL DEFAULT NOW(),
+	dateFinCM DATE NOT NULL,
+	pourAdhesionCM INT NOT NULL,
+	PRIMARY KEY (idCM),
+	FOREIGN KEY (pourAdhesionCM) REFERENCES Adhesion(idAD)
+);
+
+CREATE TABLE Formation (
+	idF INT NOT NULL UNIQUE AUTO_INCREMENT,
+	nomF VARCHAR(30) NOT NULL,
+	dateDebutF Date NOT NULL,
+	dateFinF Date NOT NULL,
+	PRIMARY KEY (idF)
+);
+
+CREATE TABLE SuitFormation (
+	formationSF INT NOT NULL,
+	adhesionSF INT NOT NULL,
+	PRIMARY KEY (formationSF, adhesionSF),
+	FOREIGN KEY (formationSF) REFERENCES Formation(idF),
+	FOREIGN KEY (adhesionSF) REFERENCES Adhesion(idAD)
 );
 
 CREATE TABLE Association (
-	siret CHAR(14) NOT NULL UNIQUE,
-	createdAt Date NOT NULL,
-	address VARCHAR(40) NOT NULL,
-	phone VARCHAR(15),
-	PRIMARY KEY (siret),
-	CHECK (siret LIKE "^\d$")
+	numeroAgrementAS CHAR(14) NOT NULL UNIQUE,
+	nomAS VARCHAR(25) NOT NULL,
+	dateCreationAS Date NOT NULL,
+	emailAS VARCHAR(30) NOT NULL,
+	telephoneAS VARCHAR(15) NOT NULL,	
+	adresseAS INT NOT NULL,
+	PRIMARY KEY (numeroAgrementAS),
+	CHECK (numeroAgrementAS LIKE "^\d$")
 );
 
-CREATE TABLE BureauMember (
-        person INT NOT NULL,
-        association CHAR(14) NOT NULL,
-        PRIMARY KEY (person, association),
-        FOREIGN KEY (person) REFERENCES Person(id),
-        FOREIGN KEY (association) REFERENCES Association(siret)
+CREATE TABLE Reunion (
+	idREU INT NOT NULL UNIQUE AUTO_INCREMENT,
+	dateREU DATETIME NOT NULL,
+	crREU TEXT NOT NULL,
+	associationREU CHAR(14) NOT NULL,
+	PRIMARY KEY (idREU),
+	FOREIGN KEY (associationREU) REFERENCES Association(numeroAgrementAS)
 );
 
-CREATE TABLE Meeting (
-	date DATETIME NOT NULL,
-	association CHAR(14) NOT NULL,
-	report TEXT,
-	PRIMARY KEY (date, association),
-	FOREIGN KEY (association) REFERENCES Association(siret)
-);
-
-CREATE TABLE Hike (
-	id INT NOT NULL UNIQUE AUTO_INCREMENT,
-	name VARCHAR(20) NOT NULL,
-	place VARCHAR(20) NOT NULL,
-	difficulty INT NOT NULL,
-	date DateTime,
-	validated BOOLEAN NOT NULL DEFAULT FALSE,
-	organizedBy CHAR(14),
-	PRIMARY KEY (id),
-	FOREIGN KEY (organizedBy) REFERENCES Association(siret)
-);
-
-CREATE TABLE ParticipationRole (
-	name VARCHAR(15) NOT NULL UNIQUE,
-	PRIMARY KEY (name)
+CREATE TABLE Randonnee (
+	idR INT NOT NULL UNIQUE AUTO_INCREMENT,
+	titreR VARCHAR(20) NOT NULL,
+	difficulteR INT NOT NULL,
+	nbKilometresR INT,
+	dateR DateTime,
+	lieuDepartR VARCHAR(40) NOT NULL,
+	valideR BOOLEAN NOT NULL DEFAULT FALSE,
+	coutR INT,
+	organizedByR CHAR(14),
+	suggereParR INT NOT NULL,
+	PRIMARY KEY (idR),
+	FOREIGN KEY (organizedByR) REFERENCES Association(numeroAgrementAS),
+	FOREIGN KEY (suggereParR) REFERENCES Adhesion(idAD)
 );
 
 CREATE TABLE Participation (
-	id INT NOT NULL UNIQUE AUTO_INCREMENT,
-	person INT NOT NULL,
-	hike INT NOT NULL,
-	role VARCHAR(15) NOT NULL,
-	PRIMARY KEY (id),
-	UNIQUE KEY person_hike_role_key (person, hike, role),
-	FOREIGN KEY (person) REFERENCES Person(id),
-	FOREIGN KEY (hike) REFERENCES Hike(id)
+	idP INT NOT NULL UNIQUE AUTO_INCREMENT,
+	personneP INT NOT NULL,
+	randonneeP INT NOT NULL,
+	roleP VARCHAR(15) NOT NULL,
+	PRIMARY KEY (idP),
+	UNIQUE KEY person_hike_role_key (personneP, randonneeP, roleP),
+	FOREIGN KEY (personneP) REFERENCES Personne(idPERS),
+	FOREIGN KEY (randonneeP) REFERENCES Randonnee(idR)
 );
 
 CREATE TABLE Photo (
-	id INT NOT NULL UNIQUE AUTO_INCREMENT,
-	link VARCHAR(100) NOT NULL UNIQUE,
-	participation INT NOT NULL,
-	PRIMARY KEY (id),
-	FOREIGN KEY (participation) REFERENCES Participation(id)
+	idPH INT NOT NULL UNIQUE AUTO_INCREMENT,
+	photoPH VARCHAR(150) NOT NULL UNIQUE,
+	lieuPH VARCHAR(50),
+	randonneePH INT NOT NULL,
+	personnePH INT NOT NULL,
+	PRIMARY KEY (idPH),
+	FOREIGN KEY (randonneePH) REFERENCES Randonnee(idR),
+	FOREIGN KEY (personnePH) REFERENCES Personne(idPERS)
 );
