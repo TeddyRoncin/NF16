@@ -350,7 +350,7 @@ AS SELECT Adhesion.idAD
     FROM Adhesion, Paiement
     WHERE Adhesion.idAD = Paiement.adhesionP AND Paiement.dateRelanceP IS NULL
     GROUP BY Adhesion.idAD
-    HAVING MAX(DATEDIFF(Paiement.dateEcheanceP, NOW())) < 7;
+    HAVING MAX(DATEDIFF(Paiement.dateEcheanceP, NOW())) < 7;  -- On prend détecte que l'on approche de l'échéance à partir d'une semaine avant celle-ci
 
 -- Fonctionnalité 4 - Tous les mois, détecter les retardataires dans le paiement de la cotisation
 
