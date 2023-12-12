@@ -8,7 +8,7 @@ USE ara;
 
 CREATE TABLE CategorieSociale (
     nomCS VARCHAR(20) NOT NULL UNIQUE COMMENT 'Nom unique de la catégorie sociale',
-      reductionCS DECIMAL(2, 2) NOT NULL COMMENT 'Réduction (entre 0 et 1, 1 signifiant 100% de réduction, 0 signifiant pas de réduction) du prix de la cotisation à l\'association pour les personnes appartenant à cette catégorie sociale',
+    reductionCS DECIMAL(2, 2) NOT NULL COMMENT 'Réduction (entre 0 et 1, 1 signifiant 100% de réduction, 0 signifiant pas de réduction) du prix de la cotisation à l\'association pour les personnes appartenant à cette catégorie sociale',
     PRIMARY KEY (nomCS)
 ) ENGINE=InnoDB COMMENT='Table des catégories sociales';
 
@@ -45,7 +45,6 @@ CREATE TABLE Adhesion (
     idAD INT NOT NULL UNIQUE AUTO_INCREMENT COMMENT 'ID de l\'adhérent',
     telephoneAD VARCHAR(15) NOT NULL COMMENT 'Numéro de téléphone de l\'adhérent',
     ddnAD DATE COMMENT 'Date de naissance de l\'adhérent',
-    canSuperviseAD BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Indique si l\'adhérent peut superviser une randonnée',
     personneAD INT NOT NULL COMMENT 'Référence vers la personne étant adhérente',
     categorieSocialeAD VARCHAR(20) COMMENT 'Référence la catégorie sociale de l\'adhérent',
     adresseAD INT COMMENT 'Référence l\'adresse de l\'adhérent',
@@ -92,7 +91,7 @@ CREATE TABLE SuitFormation (
     formationSF INT NOT NULL COMMENT 'Référence vers la formation suivie',
     adhesionSF INT NOT NULL COMMENT 'Référence vers l\'adhésion de la personne suivant la formation référencée par formationSF',
     reussiSF BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Réussite ou non de la formation. FALSE si la formation n\'est pas finie',
-    dateValiditeF DATE NOT NULL COMMENT 'La date de fin de validité de la formation. Passée cette date, les compétences jusque là acquises par l\' adhérent lors de cette formation ne seront plus considérées comme telles',
+    dateValiditeSF DATE NOT NULL COMMENT 'La date de fin de validité de la formation. Passée cette date, les compétences jusque là acquises par l\' adhérent lors de cette formation ne seront plus considérées comme telles',
     PRIMARY KEY (formationSF, adhesionSF),
     FOREIGN KEY (formationSF) REFERENCES Formation(idF),
     FOREIGN KEY (adhesionSF) REFERENCES Adhesion(idAD)
@@ -148,7 +147,7 @@ CREATE TABLE Photo (
 
 -- -- -- SEEDING -- -- --
 
-INSERT INTO Adresse (idA, numeroA, `rueA`, `villeA`, `cpA`, `paysA`) VALUES
+INSERT INTO Adresse (idA, numeroA, rueA, villeA, cpA, paysA) VALUES
     (1, 1, 'Rue de la Liberté', 'Paris', 75000, 'France'),
     (2, 2, 'Avenue des Roses', 'Lyon', 69000, 'France'),
     (3, 3, 'Boulevard du Commerce', 'Marseille', 13000, 'France'),
@@ -165,10 +164,10 @@ INSERT INTO Adresse (idA, numeroA, `rueA`, `villeA`, `cpA`, `paysA`) VALUES
     (14, 14, 'Avenue de la Liberté', 'Nice', 60000, 'France'),
     (15, 15, 'Place du Capitole', 'Toulouse', 31000, 'France');
 
-INSERT INTO Association (numeroAgrementAS, nomAS, telephoneAS, `emailAS`, `dateCreationAS`, `adresseAS`) VALUES
+INSERT INTO Association (numeroAgrementAS, nomAS, telephoneAS, emailAS, dateCreationAS, adresseAS) VALUES
     ('W123456789', 'Association des Randonneurs Aubois (A.R.A.)', '0325270000', 'contact@ara.fr', '2023-11-01', 15);
 
-INSERT INTO CategorieSociale (`nomCS`, `reductionCS`) VALUES
+INSERT INTO CategorieSociale (nomCS, reductionCS) VALUES
     ('Catégorie 1', 0.75),
     ('Catégorie 2', 0.50),
     ('Catégorie 3', 0);
@@ -195,7 +194,7 @@ INSERT INTO Personne (idPERS, nomPERS, prenomPERS, emailPERS) VALUES
     (19, 'Vincent', 'Théo', 'theo.vincent@example.com'),
     (20, 'Masson', 'Mathilde', 'mathilde.masson@example.com');
 
-INSERT INTO Adhesion (`idAD`, fonctionAD, `ddnAD`, `telephoneAD`, associationAD, personneAD, adresseAD, categorieSocialeAD) VALUES
+INSERT INTO Adhesion (idAD, fonctionAD, ddnAD, telephoneAD, associationAD, personneAD, adresseAD, categorieSocialeAD) VALUES
     (1, 'Membre', '2004-12-11', '0601023475', 'W123456789', 1, 1, NULL),
     (2, 'Membre', '1998-05-25', '0605123789', 'W123456789', 2, 1, 'Catégorie 1'),
     (3, 'Secrétaire', '1990-09-12', '0612345678', 'W123456789', 3, 3, 'Catégorie 2'),
@@ -212,7 +211,7 @@ INSERT INTO Adhesion (`idAD`, fonctionAD, `ddnAD`, `telephoneAD`, associationAD,
     (14, 'Membre', '1984-03-22', '0623456789', 'W123456789', 14, 14, 'Catégorie 1'),
     (15, 'Membre', '1993-09-08', '0634567890', 'W123456789', 15, 2, NULL);
 
-INSERT INTO CertificatMedical (`idCM`, `medecinCM`, `lienCM`, `dateDebutCM`, `dateFinCM`, pourAdhesionCM) VALUES
+INSERT INTO CertificatMedical (idCM, medecinCM, lienCM, dateDebutCM, dateFinCM, pourAdhesionCM) VALUES
     (1, 'Docteur Martin', 'Lien_Certificat_1', '2023-11-01', '2023-11-30', 1),
     (2, 'Docteur Dupont', 'Lien_Certificat_2', '2023-11-01', '2023-11-30', 2),
     (3, 'Docteur Lambert', 'Lien_Certificat_3', '2023-11-01', '2023-11-30', 3),
@@ -248,16 +247,19 @@ INSERT INTO CompteRendu (idCR, contenuCR, dateCR, associationCR) VALUES
     (6, 'CR 6', '2023-12-11', 'W123456789');
 
 INSERT INTO Formation (idF, nomF, dateDebutF, dateFinF) VALUES
-    (1, 'Gestion', '2024-11-01', '2023-11-01'),
-    (2, 'Trésorerie', '2024-11-01', '2023-11-01'),
-    (3, 'Trésorerie', '2024-11-01', '2023-11-01'),
-    (4, 'Secrétaire', '2024-11-01', '2023-11-01'),
-    (5, 'Secrétaire', '2024-11-01', '2023-11-01'),
-    (6, 'Secrétaire', '2024-11-01', '2023-11-01'),
-    (7, 'Guide', '2024-11-01', '2023-11-01'),
-    (8, 'Guide', '2024-11-01', '2023-11-01');
+    (1, 'Gestion', '2024-11-01', '2024-11-03'),
+    (2, 'Trésorerie', '2024-11-01', '2024-11-03'),
+    (3, 'Trésorerie', '2024-11-01', '2024-11-03'),
+    (4, 'Secrétaire', '2024-11-01', '2024-11-03'),
+    (5, 'Secrétaire', '2024-11-01', '2024-11-03'),
+    (6, 'Secrétaire', '2024-11-01', '2024-11-03'),
+    (7, 'Guide', '2024-11-01', '2024-11-03'),
+    (8, 'Guide', '2024-11-01', '2024-11-03'),
+    (9, 'Logistique', '2024-11-01', '2024-11-03'),
+    (10, 'Balisage', '2024-11-01', '2024-11-03'),
+    (11, 'Ravitaillement', '2024-11-01', '2024-11-03');
 
-INSERT INTO SuitFormation (formationSF, adhesionSF, reussiSF, dateValiditeF) VALUES
+INSERT INTO SuitFormation (formationSF, adhesionSF, reussiSF, dateValiditeSF) VALUES
     (1, 4, TRUE, '2023-12-01'),
     (2, 5, TRUE, '2023-12-01'),
     (3, 10, TRUE, '2023-12-01'),
@@ -343,8 +345,6 @@ INSERT INTO Photo (idPH, photoPH, lieuPH, randonneePH, personnePH) VALUES
 
 -- Fonctionnalité 3 - Détecter qu’un adhérent arrive bientôt à ́échéance de son adhésion ou est déjà à échéance
 
-DELIMITER //
-
 CREATE VIEW detecterEcheance
 AS SELECT Adhesion.idAD
     FROM Adhesion, Paiement
@@ -354,10 +354,12 @@ AS SELECT Adhesion.idAD
 
 -- Fonctionnalité 4 - Tous les mois, détecter les retardataires dans le paiement de la cotisation
 
+DELIMITER //
+
 CREATE TABLE _Echeances (
     adhesionId INT,
     PRIMARY KEY (adhesionId)
-) ENGINE InnoDB//
+) ENGINE=InnoDB//
 
 CREATE EVENT retardataires
 ON SCHEDULE EVERY 1 MONTH
@@ -367,6 +369,7 @@ COMMENT 'Fonctionalité 4 - Tous les mois, détecter les retardataires dans le p
 DO BEGIN
     INSERT INTO _Echeances SELECT * FROM detecterEcheance;
 END//
+
 DELIMITER ;
 
 -- Fonctionnalité 5 : créer une vue qui retourne les informations détaillées des adhérents
@@ -383,13 +386,13 @@ CREATE VIEW infosadherents AS
            Association.nomAS AS `Nom de l'association dont il fait partie`,
            MIN(Paiement.datePaiementP) AS `Date d'adhésion de l'adhérent`,
            Adhesion.fonctionAD AS `Fonction de l'adhérent dans son association`,
-           IF(COUNT(Formation.idF) = 0, 'Aucune', GROUP_CONCAT(DISTINCT Formation.nomF, ' (Valide jusqu\'au ', SuitFormation.dateValiditeF, ')' SEPARATOR ',')) AS `Formations de l'adhérent dans son association`,
+           IF(COUNT(Formation.idF) = 0, 'Aucune', GROUP_CONCAT(DISTINCT Formation.nomF, ' (Valide jusqu\'au ', SuitFormation.dateValiditeSF, ')' SEPARATOR ',')) AS `Formations de l'adhérent dans son association`,
            MAX(CertificatMedical.dateFinCM) AS `Expiration du certificat médical`,
            MAX(Paiement.dateEcheanceP) AS `Date d'échéance du paiement`,
-           IF(Paiement.dateRelanceP IS NULL, '<Pas de relance actuellement>', MAX(Paiement.dateRelanceP)) AS `Date de relance du paiement`,
-           IF(MAX(TO_DAYS(Paiement.dateEcheanceP) - TO_DAYS(NOW())) < 0, 'Non à jour', 'À jour') AS `État de la cotisation`,
-           GROUP_CONCAT(DISTINCT Participe.rolePART separator ',') AS `Rôles tenus lors des randonnées`,
-           COUNT(DISTINCT Participe.idPART) AS `Nombre de participations à des randonnées`,
+           IF(Paiement.dateRelanceP, '<Pas de relance actuellement>', Paiement.dateRelanceP) AS `Date de relance du paiement`,
+           IF(TO_DAYS(Paiement.dateEcheanceP) - TO_DAYS(NOW()) < 0, 'Non à jour', 'À jour') AS `État de la cotisation`,
+           GROUP_CONCAT(DISTINCT Participe.rolePART SEPARATOR ',') AS `Rôles tenus lors des randonnées`,
+           COUNT(DISTINCT Participe.randonneePART) AS `Nombre de participations à des randonnées`,
            COUNT(DISTINCT Photo.idPH) AS `Nombre de photos prises en randonnée`
         FROM Adhesion
         INNER JOIN Personne ON Personne.idPERS = Adhesion.idAD
@@ -398,6 +401,11 @@ CREATE VIEW infosadherents AS
         LEFT JOIN Formation ON Formation.idF = SuitFormation.formationSF
         LEFT JOIN CertificatMedical ON Adhesion.idAD = CertificatMedical.pourAdhesionCM
         LEFT JOIN Paiement ON Adhesion.idAD = Paiement.adhesionP
+        -- On crée une deuxième jointure avec paiement, pour s'assurer de ne récupérer que le paiement le plus récent
+        -- On essaie de trouver un paiementControle payé plus tard que le Paiement joint juste au-dessus
+        -- On s'assure ensuite dans un WHERE qu'un tel paiement n'existe pas, et donc que paiementControle.idP IS NULL
+        LEFT JOIN Paiement paiementControle ON paiementControle.adhesionP = Adhesion.idAD AND Paiement.datePaiementP < paiementControle.datePaiementP
         LEFT JOIN Participe ON Personne.idPERS = Participe.personnePART
         LEFT JOIN Photo ON Personne.idPERS = Photo.personnePH
+        WHERE paiementControle.idP IS NULL
         GROUP BY Adhesion.idAD;
